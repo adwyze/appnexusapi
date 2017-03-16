@@ -3,6 +3,9 @@ require 'appnexusapi/faraday/raise_http_error'
 require 'null_logger'
 
 class AppnexusApi::Connection
+  attr_reader :token
+  attr_reader :update_token
+
   RATE_EXCEEDED_DEFAULT_TIMEOUT = 15
   # Inexplicably, sandbox uses the correct code of 429, while production uses 405? so
   # we just rely on the error message
@@ -10,8 +13,11 @@ class AppnexusApi::Connection
 
   def initialize(config)
     @config = config
+    @update_token = false
     @config['uri'] ||= 'https://api.appnexus.com/'
     @logger = @config['logger'] || NullLogger.instance
+    @token = @config['token']
+    update_token_if_expired
     @connection = Faraday.new(@config['uri']) do |conn|
       conn.response :logger, @logger, bodies: true
       conn.request :json
@@ -28,9 +34,17 @@ class AppnexusApi::Connection
   def log
     @logger
   end
-  
-  def token
-    @token
+
+  def expired?
+    response = @connection.run_request(:get, 'member', {}, {})
+    log.debug(response.body)
+    return true if response.body['response']['error_code'] == 'NOAUTH'
+  end
+
+  def update_token_if_expired
+    return if is_authorized? && !expired?
+    login
+    @update_token = true
   end
 
   def login
@@ -68,7 +82,7 @@ class AppnexusApi::Connection
   end
 
   def run_request(method, route, body, headers)
-    login unless is_authorized?
+    update_token_if_expired
     response = {}
     begin
       loop do
