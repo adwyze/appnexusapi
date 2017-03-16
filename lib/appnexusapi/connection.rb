@@ -35,10 +35,14 @@ class AppnexusApi::Connection
     @logger
   end
 
+  # Tests if the token has expired by making a call against the member endpoint
   def expired?
-    response = @connection.run_request(:get, 'member', {}, { 'Authorization' => @token })
-    log.debug(response.body)
-    return true if response.body['response']['error_code'] == 'NOAUTH'
+    response = @connection.get(@connection.build_url('member')) do |req|
+      req.headers['Authorization'] = @token
+    end
+    reponse_body = JSON.parse(response.body)
+    log.debug(response_body)
+    return true if response_body['response']['error_code'] == 'NOAUTH'
   end
 
   def update_token_if_expired
