@@ -28,6 +28,10 @@ class AppnexusApi::Connection
   def log
     @logger
   end
+  
+  def token
+    @token
+  end
 
   def login
     response = @connection.run_request(:post, 'auth', { 'auth' => { 'username' => @config['username'], 'password' => @config['password'] } }, {})
