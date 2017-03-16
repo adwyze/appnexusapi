@@ -17,14 +17,14 @@ class AppnexusApi::Connection
     @config['uri'] ||= 'https://api.appnexus.com/'
     @logger = @config['logger'] || NullLogger.instance
     @token = @config['token']
-    update_token_if_expired
     @connection = Faraday.new(@config['uri']) do |conn|
       conn.response :logger, @logger, bodies: true
       conn.request :json
       conn.response :json, :content_type => /\bjson$/
       conn.use AppnexusApi::Faraday::Response::RaiseHttpError
       conn.adapter Faraday.default_adapter
-    end
+    end 
+    update_token_if_expired
   end
 
   def is_authorized?
