@@ -36,7 +36,7 @@ class AppnexusApi::Connection
   end
 
   def expired?
-    response = @connection.run_request(:get, 'member', {}, {})
+    response = @connection.run_request(:get, 'member', {}, { 'Authorization' => @token })
     log.debug(response.body)
     return true if response.body['response']['error_code'] == 'NOAUTH'
   end
