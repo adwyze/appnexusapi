@@ -4,7 +4,7 @@ require 'null_logger'
 
 class AppnexusApi::Connection
   attr_reader :token
-  attr_reader :update_token
+  attr_accessor :update_token
 
   RATE_EXCEEDED_DEFAULT_TIMEOUT = 15
   # Inexplicably, sandbox uses the correct code of 429, while production uses 405? so
